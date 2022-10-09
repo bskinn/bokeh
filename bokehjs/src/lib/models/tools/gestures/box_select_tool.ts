@@ -77,7 +77,7 @@ export class BoxSelectToolView extends SelectToolView {
     const [sxlim, sylim] = this._compute_limits([sx, sy])
     this._do_select(sxlim, sylim, true, this._select_mode(ev))
 
-    if (!this.model.overlay.editable) {
+    if (!this.model.persistent) {
       this._clear_overlay()
     }
 
@@ -148,6 +148,7 @@ export namespace BoxSelectTool {
     select_every_mousemove: p.Property<boolean>
     overlay: p.Property<BoxAnnotation>
     origin: p.Property<BoxOrigin>
+    persistent: p.Property<boolean>
   }
 }
 
@@ -169,6 +170,7 @@ export class BoxSelectTool extends SelectTool {
       select_every_mousemove: [ Boolean, false ],
       overlay:                [ Ref(BoxAnnotation), DEFAULT_BOX_OVERLAY ],
       origin:                 [ BoxOrigin, "corner" ],
+      persistent:             [ Boolean, false ],
     }))
 
     this.register_alias("box_select", () => new BoxSelectTool())
