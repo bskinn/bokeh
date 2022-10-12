@@ -179,6 +179,7 @@ const DEFAULT_BOX_OVERLAY = () => {
   return new BoxAnnotation({
     level: "overlay",
     visible: false,
+    editable: true,
     top_units: "canvas",
     left_units: "canvas",
     bottom_units: "canvas",
