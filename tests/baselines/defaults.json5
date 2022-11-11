@@ -4254,6 +4254,8 @@
     top: null,
     top_units: "data",
     editable: false,
+    resizable: "all",
+    movable: "both",
     line_color: "#cccccc",
     line_alpha: 0.3,
     line_width: 1,

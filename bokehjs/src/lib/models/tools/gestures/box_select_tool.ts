@@ -223,7 +223,7 @@ export class BoxSelectTool extends SelectTool {
   static {
     this.prototype.default_view = BoxSelectToolView
 
-    this.define<BoxSelectTool.Props>(({Boolean, Ref}) => ({
+    this.define<BoxSelectTool.Props, BoxSelectTool>(({Boolean, Ref}) => ({
       dimensions:             [ Dimensions, "both" ],
       select_every_mousemove: [ Boolean, false ],
       overlay:                [ Ref(BoxAnnotation), DEFAULT_BOX_OVERLAY ],
@@ -234,6 +234,20 @@ export class BoxSelectTool extends SelectTool {
     this.register_alias("box_select", () => new BoxSelectTool())
     this.register_alias("xbox_select", () => new BoxSelectTool({dimensions: "width"}))
     this.register_alias("ybox_select", () => new BoxSelectTool({dimensions: "height"}))
+  }
+
+  override initialize(): void {
+    super.initialize()
+
+    const [resizable, movable] = (() => {
+      switch (this.dimensions) {
+        case "width":  return ["x", "x"] as const
+        case "height": return ["y", "y"] as const
+        case "both":   return ["all", "both"] as const
+      }
+    })()
+
+    this.overlay.setv({resizable, movable})
   }
 
   override tool_name = "Box Select"
