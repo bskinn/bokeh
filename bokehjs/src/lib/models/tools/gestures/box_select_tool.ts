@@ -249,7 +249,8 @@ export class BoxSelectTool extends SelectTool {
       }
     })()
 
-    this.overlay.setv({resizable, movable})
+    const symmetric = this.origin == "center"
+    this.overlay.setv({resizable, movable, symmetric})
   }
 
   override tool_name = "Box Select"
