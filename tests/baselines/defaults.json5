@@ -4987,8 +4987,8 @@
   RangeTool: {
     __extends__: "Drag",
     x_range: null,
-    x_interaction: true,
     y_range: null,
+    x_interaction: true,
     y_interaction: true,
     overlay: {
       type: "object",
@@ -4996,6 +4996,7 @@
       attributes: {
         syncable: false,
         level: "overlay",
+        editable: true,
         line_color: "black",
         line_alpha: 1.0,
         line_width: 0.5,
