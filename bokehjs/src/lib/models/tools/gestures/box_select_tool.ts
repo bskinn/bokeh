@@ -184,6 +184,7 @@ export class BoxSelectToolView extends SelectToolView {
 
 const DEFAULT_BOX_OVERLAY = () => {
   return new BoxAnnotation({
+    syncable: false,
     level: "overlay",
     visible: false,
     editable: true,

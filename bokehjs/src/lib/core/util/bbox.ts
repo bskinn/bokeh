@@ -235,6 +235,15 @@ export class BBox implements Rect, Equatable {
 
   get area(): number { return this.width*this.height }
 
+  round(): BBox {
+    return new BBox({
+      x0: Math.round(this.x0),
+      x1: Math.round(this.x1),
+      y0: Math.round(this.y0),
+      y1: Math.round(this.y1),
+    })
+  }
+
   relative(): BBox {
     const {width, height} = this
     return new BBox({x: 0, y: 0, width, height})
