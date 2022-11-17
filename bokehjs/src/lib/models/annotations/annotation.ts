@@ -44,7 +44,7 @@ export abstract class AnnotationView extends RendererView {
 
   override serializable_state(): SerializableState {
     const state = super.serializable_state()
-    return this.layout == null ? state : {...state, bbox: this.layout.bbox.box}
+    return this.layout == null ? state : {...state, bbox: this.layout.bbox}
   }
 }
 
