@@ -80,7 +80,6 @@ export namespace LassoSelectTool {
   export type Props = SelectTool.Props & {
     select_every_mousemove: p.Property<boolean>
     overlay: p.Property<PolyAnnotation>
-    /** internal */
     persistent: p.Property<boolean>
   }
 }
@@ -100,10 +99,7 @@ export class LassoSelectTool extends SelectTool {
 
     this.define<LassoSelectTool.Props>(({Boolean, Ref}) => ({
       select_every_mousemove: [ Boolean, true ],
-      overlay:                [ Ref(PolyAnnotation), DEFAULT_POLY_OVERLAY ],
-    }))
-
-    this.internal<LassoSelectTool.Props>(({Boolean}) => ({
+      overlay: [ Ref(PolyAnnotation), DEFAULT_POLY_OVERLAY ],
       persistent: [ Boolean, false ],
     }))
 
