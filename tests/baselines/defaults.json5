@@ -5025,6 +5025,7 @@
       attributes: {
         syncable: false,
         level: "overlay",
+        propagate_hover: true,
         editable: true,
         line_color: "black",
         line_alpha: 1.0,
