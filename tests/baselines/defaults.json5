@@ -4259,6 +4259,7 @@
     resizable: "all",
     movable: "both",
     symmetric: false,
+    handles: false,
     line_color: "#cccccc",
     line_alpha: 0.3,
     line_width: 1,

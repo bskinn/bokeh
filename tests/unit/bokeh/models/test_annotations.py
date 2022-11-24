@@ -235,6 +235,7 @@ def test_BoxAnnotation() -> None:
     assert box.y_range_name == "default"
     assert box.level == "annotation"
     assert box.editable is False
+    assert box.handles is False
     check_line_properties(box, "", "#cccccc", 1, 0.3)
     check_fill_properties(box, "", "#fff9ba", 0.4)
     check_hatch_properties(box)
@@ -255,6 +256,7 @@ def test_BoxAnnotation() -> None:
         "resizable",
         "movable",
         "symmetric",
+        "handles",
     ], LINE, FILL, HATCH, HOVER_LINE, HOVER_FILL, HOVER_HATCH)
 
 def test_BoxAnnotation_accepts_datetime() -> None:

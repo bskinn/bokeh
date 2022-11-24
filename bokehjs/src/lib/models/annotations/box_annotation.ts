@@ -14,7 +14,7 @@ import {Rect} from "core/types"
 import {assert} from "core/util/assert"
 import {isNumber} from "core/util/types"
 
-export const EDGE_TOLERANCE = 2.5
+export const EDGE_TOLERANCE = 5
 
 const {abs} = Math
 
@@ -195,56 +195,138 @@ export class BoxAnnotationView extends AnnotationView implements Pannable, Movea
     line.apply(ctx)
 
     ctx.restore()
+
+    if (this.model.editable && this.model.handles) {
+      function paint(bbox: BBox) {
+        const {right, hcenter, vcenter, width, height} = bbox
+        ctx.moveTo(right, vcenter)
+        ctx.arc(hcenter, vcenter, Math.max(width, height)/2, 0, 2*Math.PI)
+        //const {left, top, width, height} = bbox
+        //ctx.rect(left, top, width, height)
+      }
+      ctx.save()
+      ctx.beginPath()
+      const {handles} = this
+      if (this._can_hit("top_left"))
+        paint(handles.top_left)
+      if (this._can_hit("top"))
+        paint(handles.top)
+      if (this._can_hit("top_right"))
+        paint(handles.top_right)
+      if (this._can_hit("right"))
+        paint(handles.right)
+      if (this._can_hit("bottom_right"))
+        paint(handles.bottom_right)
+      if (this._can_hit("bottom"))
+        paint(handles.bottom)
+      if (this._can_hit("bottom_left"))
+        paint(handles.bottom_left)
+      if (this._can_hit("left"))
+        paint(handles.left)
+      if (this._can_hit("area"))
+        paint(handles.area)
+      ctx.fillStyle = "white"
+      ctx.strokeStyle = "black"
+      ctx.lineWidth = 1.5
+      ctx.fill()
+      ctx.stroke()
+      ctx.restore()
+    }
   }
 
-  interactive_bbox(): BBox {
-    const tolerance = this.model.line_width + EDGE_TOLERANCE
-    return this.bbox.grow_by(tolerance)
+  get _tolerance(): number {
+    return Math.max(EDGE_TOLERANCE, this.model.line_width/2)
+  }
+
+  get handles() {
+    const {_tolerance} = this
+    const {left, right, top, bottom, hcenter, vcenter} = this.bbox.grow_by(_tolerance)
+    const width = 2*_tolerance
+    const height = 2*_tolerance
+    return {
+      top_left: new BBox({left, top, width, height}),
+      top: new BBox({hcenter, top, width, height}),
+      top_right: new BBox({right, top, width, height}),
+      right: new BBox({right, vcenter, width, height}),
+      bottom_right: new BBox({right, bottom, width, height}),
+      bottom: new BBox({hcenter, bottom, width, height}),
+      bottom_left: new BBox({left, bottom, width, height}),
+      left: new BBox({left, vcenter, width, height}),
+      area: new BBox({hcenter, vcenter, width, height}),
+    }
   }
 
   override interactive_hit(sx: number, sy: number): boolean {
     if (!this.model.visible || !this.model.editable)
       return false
-    const bbox = this.interactive_bbox()
-    return bbox.contains(sx, sy)
+    if (this.bbox.contains(sx, sy))
+      return true
+    return this._hit_test_handles(sx, sy) != null
+  }
+
+  private _hit_test_handles(sx: number, sy: number): HitTarget | null {
+    const {handles} = this
+    if (handles.top_left.contains(sx, sy))
+      return "top_left"
+    if (handles.top.contains(sx, sy))
+      return "top"
+    if (handles.top_right.contains(sx, sy))
+      return "top_right"
+    if (handles.right.contains(sx, sy))
+      return "right"
+    if (handles.bottom_right.contains(sx, sy))
+      return "bottom_right"
+    if (handles.bottom.contains(sx, sy))
+      return "bottom"
+    if (handles.bottom_left.contains(sx, sy))
+      return "bottom_left"
+    if (handles.left.contains(sx, sy))
+      return "left"
+    if (handles.area.contains(sx, sy))
+      return "area"
+    return null
   }
 
   private _hit_test(sx: number, sy: number): HitTarget | null {
-    const {left, right, bottom, top} = this.bbox
-    const tolerance = Math.max(EDGE_TOLERANCE, this.model.line_width/2)
+    if (this.model.handles) {
+      return this._hit_test_handles(sx, sy)
+    } else {
+      const {left, right, bottom, top} = this.bbox
+      const tolerance = this._tolerance
 
-    const dl = abs(left - sx)
-    const dr = abs(right - sx)
-    const dt = abs(top - sy)
-    const db = abs(bottom - sy)
+      const dl = abs(left - sx)
+      const dr = abs(right - sx)
+      const dt = abs(top - sy)
+      const db = abs(bottom - sy)
 
-    const hits_left = dl < tolerance && dl < dr
-    const hits_right = dr < tolerance && dr < dl
-    const hits_top = dt < tolerance && dt < db
-    const hits_bottom = db < tolerance && db < dt
+      const hits_left = dl < tolerance && dl < dr
+      const hits_right = dr < tolerance && dr < dl
+      const hits_top = dt < tolerance && dt < db
+      const hits_bottom = db < tolerance && db < dt
 
-    if (hits_top && hits_left)
-      return "top_left"
-    if (hits_top && hits_right)
-      return "top_right"
-    if (hits_bottom && hits_left)
-      return "bottom_left"
-    if (hits_bottom && hits_right)
-      return "bottom_right"
+      if (hits_top && hits_left)
+        return "top_left"
+      if (hits_top && hits_right)
+        return "top_right"
+      if (hits_bottom && hits_left)
+        return "bottom_left"
+      if (hits_bottom && hits_right)
+        return "bottom_right"
 
-    if (hits_left)
-      return "left"
-    if (hits_right)
-      return "right"
-    if (hits_top)
-      return "top"
-    if (hits_bottom)
-      return "bottom"
+      if (hits_left)
+        return "left"
+      if (hits_right)
+        return "right"
+      if (hits_top)
+        return "top"
+      if (hits_bottom)
+        return "bottom"
 
-    if (this.bbox.contains(sx, sy))
-      return "area"
+      if (this.bbox.contains(sx, sy))
+        return "area"
 
-    return null
+      return null
+    }
   }
 
   get resizable(): LRTB<boolean> {
@@ -439,6 +521,7 @@ export namespace BoxAnnotation {
     resizable: p.Property<Resizable>
     movable: p.Property<Movable>
     symmetric: p.Property<boolean>
+    handles: p.Property<boolean>
 
     tl_cursor: p.Property<string>
     tr_cursor: p.Property<string>
@@ -502,6 +585,7 @@ export class BoxAnnotation extends Annotation {
       resizable:    [ Resizable, "all" ],
       movable:      [ Movable, "both" ],
       symmetric:    [ Boolean, false ],
+      handles:      [ Boolean, false ],
     }))
 
     this.internal<BoxAnnotation.Props>(({String}) => ({

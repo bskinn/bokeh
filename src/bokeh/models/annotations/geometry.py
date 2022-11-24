@@ -160,6 +160,13 @@ class BoxAnnotation(Annotation):
         This property is experimental and may change at any point.
     """)
 
+    handles = Bool(default=False, help="""
+    Indicates whether resize/move handles should be used.
+
+    .. note::
+        This property is experimental and may change at any point.
+    """)
+
     line_props = Include(ScalarLineProps, help="""
     The {prop} values for the box.
     """)
