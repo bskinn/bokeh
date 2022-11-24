@@ -21,7 +21,12 @@ import typing as tp
 from unittest.mock import MagicMock, patch
 
 # Bokeh imports
-from bokeh.core.properties import Int, List, Nullable
+from bokeh.core.properties import (
+    Alias,
+    Int,
+    List,
+    Nullable,
+)
 from bokeh.model import Model
 from tests.support.util.api import verify_all
 
@@ -36,6 +41,7 @@ ALL = (
     'AliasPropertyDescriptor',
     'ColumnDataPropertyDescriptor',
     'DataSpecPropertyDescriptor',
+    'DeprecatedAliasPropertyDescriptor',
     'PropertyDescriptor',
     'UnitsSpecPropertyDescriptor',
     'UnsetValueError',
@@ -261,15 +267,12 @@ class Test_UnitSpecDescriptor:
 
 class Test_AliasSpecDescriptor:
     def test___init__(self) -> None:
-        class Foo:
-            '''doc'''
-            pass
-        f = Foo()
-        d = bcpd.AliasPropertyDescriptor("foo", "bar", f)
+        f = Alias("bar")
+        d = bcpd.AliasPropertyDescriptor("foo", f)
         assert d.name == "foo"
         assert d.aliased_name == "bar"
         assert d.property == f
-        assert d.__doc__ == "This is a compatibility alias for the ``bar`` property"
+        assert d.__doc__ == "This is a compatibility alias for the 'bar' property."
 
 #-----------------------------------------------------------------------------
 # Private API
