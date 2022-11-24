@@ -16,7 +16,7 @@ export class BoxSelectToolView extends SelectToolView {
   }
 
   protected _is_continuous(ev: KeyModifiers): boolean {
-    return this.model.select_every_mousemove != ev.alt_key
+    return this.model.continuous != ev.alt_key
   }
 
   override connect_signals(): void {
@@ -206,7 +206,7 @@ export namespace BoxSelectTool {
 
   export type Props = SelectTool.Props & {
     dimensions: p.Property<Dimensions>
-    select_every_mousemove: p.Property<boolean>
+    continuous: p.Property<boolean>
     overlay: p.Property<BoxAnnotation>
     origin: p.Property<BoxOrigin>
     persistent: p.Property<boolean>
@@ -227,11 +227,11 @@ export class BoxSelectTool extends SelectTool {
     this.prototype.default_view = BoxSelectToolView
 
     this.define<BoxSelectTool.Props, BoxSelectTool>(({Boolean, Ref}) => ({
-      dimensions:             [ Dimensions, "both" ],
-      select_every_mousemove: [ Boolean, false ],
-      overlay:                [ Ref(BoxAnnotation), DEFAULT_BOX_OVERLAY ],
-      origin:                 [ BoxOrigin, "corner" ],
-      persistent:             [ Boolean, false ],
+      dimensions: [ Dimensions, "both" ],
+      continuous: [ Boolean, false ],
+      overlay:    [ Ref(BoxAnnotation), DEFAULT_BOX_OVERLAY ],
+      origin:     [ BoxOrigin, "corner" ],
+      persistent: [ Boolean, false ],
     }))
 
     this.register_alias("box_select", () => new BoxSelectTool())

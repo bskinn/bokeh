@@ -4991,7 +4991,7 @@
   },
   RegionSelectTool: {
     __extends__: "SelectTool",
-    select_every_mousemove: false,
+    continuous: false,
     persistent: false,
   },
   InspectTool: {
@@ -5153,7 +5153,7 @@
       "Drag",
       "RegionSelectTool",
     ],
-    select_every_mousemove: true,
+    continuous: true,
     overlay: {
       type: "object",
       name: "PolyAnnotation",

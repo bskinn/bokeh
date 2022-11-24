@@ -55,7 +55,7 @@ export class LassoSelectToolView extends SelectToolView {
   }
 
   protected _is_continuous(ev: KeyModifiers): boolean {
-    return this.model.select_every_mousemove != ev.alt_key
+    return this.model.continuous != ev.alt_key
   }
 
   override connect_signals(): void {
@@ -154,7 +154,7 @@ export namespace LassoSelectTool {
   export type Attrs = p.AttrsOf<Props>
 
   export type Props = SelectTool.Props & {
-    select_every_mousemove: p.Property<boolean>
+    continuous: p.Property<boolean>
     overlay: p.Property<PolyAnnotation>
     persistent: p.Property<boolean>
   }
@@ -174,7 +174,7 @@ export class LassoSelectTool extends SelectTool {
     this.prototype.default_view = LassoSelectToolView
 
     this.define<LassoSelectTool.Props>(({Boolean, Ref}) => ({
-      select_every_mousemove: [ Boolean, true ],
+      continuous: [ Boolean, true ],
       overlay: [ Ref(PolyAnnotation), DEFAULT_POLY_OVERLAY ],
       persistent: [ Boolean, false ],
     }))
