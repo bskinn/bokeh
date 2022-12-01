@@ -176,7 +176,7 @@ class AliasPropertyDescriptor(Generic[T]):
     def has_unstable_default(self, obj: HasProps) -> bool:
         return obj.lookup(self.aliased_name).has_unstable_default(obj)
 
-    def class_default(self, cls: Type[HasProps], *, no_eval: bool = False):
+    def class_default(self, cls: type[HasProps], *, no_eval: bool = False):
         return cls.lookup(self.aliased_name).class_default(cls, no_eval=no_eval)
 
 class DeprecatedAliasPropertyDescriptor(AliasPropertyDescriptor[T]):
@@ -192,7 +192,7 @@ class DeprecatedAliasPropertyDescriptor(AliasPropertyDescriptor[T]):
     def _warn(self) -> None:
         deprecated(self.alias.since, self.name, self.aliased_name, self.alias.extra)
 
-    def __get__(self, obj: HasProps | None, owner: Type[HasProps] | None) -> T:
+    def __get__(self, obj: HasProps | None, owner: type[HasProps] | None) -> T:
         if obj is not None:
             # Warn only when accesing descriptor's value, otherwise there would
             # be a lot of spurious warnings from parameter resolution, etc.
