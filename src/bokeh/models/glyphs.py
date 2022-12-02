@@ -38,14 +38,11 @@ log = logging.getLogger(__name__)
 
 # Bokeh imports
 from ..core.enums import (
-    Align,
     Anchor,
     Direction,
-    HAlign,
     ImageOrigin,
     Palette,
     StepMode,
-    VAlign,
     enumeration,
 )
 from ..core.has_props import abstract
@@ -53,7 +50,6 @@ from ..core.properties import (
     AngleSpec,
     Bool,
     DistanceSpec,
-    Either,
     Enum,
     Float,
     Include,
@@ -64,14 +60,13 @@ from ..core.properties import (
     NullDistanceSpec,
     NumberSpec,
     Override,
-    Percent,
     Size,
     SizeSpec,
     String,
     StringSpec,
-    Tuple,
     field,
 )
+from ..core.property.aliases import AnchorLike
 from ..core.property_mixins import (
     FillProps,
     HatchProps,
@@ -695,10 +690,7 @@ class ImageBase(XYGlyph):
     Defines the coordinate space of an image.
     """)
 
-    anchor = Either(
-        Enum(Anchor),
-        Tuple(Either(Enum(Align), Enum(HAlign), Percent),
-              Either(Enum(Align), Enum(VAlign), Percent)), default="bottom_left", help="""
+    anchor = AnchorLike(default="bottom_left", help="""
     Position of the image should be anchored at the `x`, `y` coordinates.
     """)
 
