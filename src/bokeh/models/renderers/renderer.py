@@ -31,7 +31,7 @@ from ...core.properties import (
     String,
 )
 from ...model import Model
-from ..coordinates import CoordinateMapping
+from ..coordinates import CoordinateMapping, CoordinatesProvider
 
 #-----------------------------------------------------------------------------
 # Globals and constants
@@ -66,7 +66,7 @@ class RendererGroup(Model):
 #-----------------------------------------------------------------------------
 
 @abstract
-class Renderer(Model):
+class Renderer(Model, CoordinatesProvider):
     """An abstract base class for renderer types.
 
     """

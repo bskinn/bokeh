@@ -18,7 +18,13 @@ log = logging.getLogger(__name__)
 #-----------------------------------------------------------------------------
 
 # Bokeh imports
-from ..core.properties import Instance, InstanceDefault
+from ..core.has_props import HasProps, abstract
+from ..core.properties import (
+    Instance,
+    InstanceDefault,
+    Required,
+    String,
+)
 from ..model import Model
 from .ranges import DataRange1d, Range
 from .scales import LinearScale, Scale
@@ -29,11 +35,40 @@ from .scales import LinearScale, Scale
 
 __all__ = (
     "CoordinateMapping",
+    "CoordinatesProvider",
+    "Node",
 )
 
 #-----------------------------------------------------------------------------
 # General API
 #-----------------------------------------------------------------------------
+
+@abstract
+class CoordinatesProvider(HasProps):
+    """ Mixin indicating models providing coordinates/nodes. """
+
+@abstract
+class Coordinate(Model):
+    """ Base class for various kinds of coordinates types. """
+
+    # explicit __init__ to support Init signatures
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+
+class Node(Coordinate):
+    """ Represents a symbolic coordinate, like e.g. box corners. """
+
+    # explicit __init__ to support Init signatures
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+
+    target = Required(Instance(CoordinatesProvider), help="""
+    The model this node is provided by.
+    """)
+
+    term = Required(String, help="""
+    The name of a node provided by a ``target`` model.
+    """)
 
 class CoordinateMapping(Model):
     """ A mapping between two coordinate systems. """

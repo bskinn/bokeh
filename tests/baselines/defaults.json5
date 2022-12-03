@@ -2614,6 +2614,21 @@
   CategoricalScale: {
     __extends__: "Scale",
   },
+  CoordinatesProvider: {},
+  Coordinate: {
+    __extends__: "Model",
+  },
+  Node: {
+    __extends__: "Coordinate",
+    target: {
+      type: "symbol",
+      name: "unset",
+    },
+    term: {
+      type: "symbol",
+      name: "unset",
+    },
+  },
   CoordinateMapping: {
     __extends__: "Model",
     x_source: {
@@ -2650,7 +2665,10 @@
     visible: true,
   },
   Renderer: {
-    __extends__: "Model",
+    __extends__: [
+      "Model",
+      "CoordinatesProvider",
+    ],
     level: "image",
     visible: true,
     coordinates: null,
