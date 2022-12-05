@@ -5493,6 +5493,164 @@
     },
     api_version: "weekly",
   },
+  "bokeh.models.shapes.Shape": {
+    __extends__: "Renderer",
+    level: "annotation",
+  },
+  "bokeh.models.shapes.Path": {
+    __extends__: "bokeh.models.shapes.Shape",
+    line_color: "black",
+    line_alpha: 1.0,
+    line_width: 1,
+    line_join: "bevel",
+    line_cap: "butt",
+    line_dash: [],
+    line_dash_offset: 0,
+  },
+  "bokeh.models.shapes.AnnularWedge": {
+    __extends__: "bokeh.models.shapes.Path",
+    center: {
+      type: "symbol",
+      name: "unset",
+    },
+    inner_radius: {
+      type: "symbol",
+      name: "unset",
+    },
+    outer_radius: {
+      type: "symbol",
+      name: "unset",
+    },
+    start_angle: {
+      type: "symbol",
+      name: "unset",
+    },
+    end_angle: {
+      type: "symbol",
+      name: "unset",
+    },
+    angle_units: "rad",
+    direction: "anticlock",
+  },
+  "bokeh.models.shapes.Annulus": {
+    __extends__: "bokeh.models.shapes.Path",
+    center: {
+      type: "symbol",
+      name: "unset",
+    },
+    inner_radius: {
+      type: "symbol",
+      name: "unset",
+    },
+    outer_radius: {
+      type: "symbol",
+      name: "unset",
+    },
+  },
+  "bokeh.models.shapes.Arc": {
+    __extends__: "bokeh.models.shapes.Path",
+    center: {
+      type: "symbol",
+      name: "unset",
+    },
+    radius: {
+      type: "symbol",
+      name: "unset",
+    },
+    start_angle: {
+      type: "symbol",
+      name: "unset",
+    },
+    end_angle: {
+      type: "symbol",
+      name: "unset",
+    },
+    angle_units: "rad",
+    direction: "anticlock",
+  },
+  "bokeh.models.shapes.Bezier": {
+    __extends__: "bokeh.models.shapes.Path",
+    p0: {
+      type: "symbol",
+      name: "unset",
+    },
+    p1: {
+      type: "symbol",
+      name: "unset",
+    },
+    cp0: {
+      type: "symbol",
+      name: "unset",
+    },
+    cp1: null,
+  },
+  "bokeh.models.shapes.Circle": {
+    __extends__: "bokeh.models.shapes.Path",
+    center: {
+      type: "symbol",
+      name: "unset",
+    },
+    radius: {
+      type: "symbol",
+      name: "unset",
+    },
+  },
+  "bokeh.models.shapes.Line": {
+    __extends__: "bokeh.models.shapes.Path",
+    p0: {
+      type: "symbol",
+      name: "unset",
+    },
+    p1: {
+      type: "symbol",
+      name: "unset",
+    },
+  },
+  "bokeh.models.shapes.Marker": {
+    __extends__: "bokeh.models.shapes.Path",
+    center: {
+      type: "symbol",
+      name: "unset",
+    },
+    size: {
+      type: "symbol",
+      name: "unset",
+    },
+    variety: {
+      type: "symbol",
+      name: "unset",
+    },
+  },
+  "bokeh.models.shapes.Spline": {
+    __extends__: "bokeh.models.shapes.Path",
+    points: {
+      type: "symbol",
+      name: "unset",
+    },
+    tension: 0.5,
+    closed: false,
+  },
+  "bokeh.models.shapes.Wedge": {
+    __extends__: "bokeh.models.shapes.Path",
+    center: {
+      type: "symbol",
+      name: "unset",
+    },
+    radius: {
+      type: "symbol",
+      name: "unset",
+    },
+    start_angle: {
+      type: "symbol",
+      name: "unset",
+    },
+    end_angle: {
+      type: "symbol",
+      name: "unset",
+    },
+    angle_units: "rad",
+    direction: "anticlock",
+  },
   BaseText: {
     __extends__: "Model",
     text: {
