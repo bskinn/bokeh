@@ -30,8 +30,7 @@ from .coordinates import CoordinatesProvider, Node
 # Globals and constants
 #-----------------------------------------------------------------------------
 
-__all__ = (
-)
+__all__ = ()
 
 #-----------------------------------------------------------------------------
 # General API
@@ -80,6 +79,18 @@ class NodesDef(Generic[T]):
         if self._nodes is None:
             self._nodes = self._cls(obj)
         return self._nodes
+
+class BoxNodes(Nodes):
+
+    top_left = NodeDef()
+    top_center = NodeDef()
+    top_right = NodeDef()
+    center_left = NodeDef()
+    center = NodeDef()
+    center_right = NodeDef()
+    bottom_left = NodeDef()
+    bottom_center = NodeDef()
+    bottom_right = NodeDef()
 
 #-----------------------------------------------------------------------------
 # Dev API

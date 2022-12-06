@@ -1,6 +1,6 @@
 import {TextAnnotation, TextAnnotationView} from "./text_annotation"
 import {compute_angle, invert_angle, atan2} from "core/util/math"
-import {CoordinateMapper} from "core/util/bbox"
+import {CoordinateMapper, BBox} from "core/util/bbox"
 import {isString, isNumber, isPlainObject} from "core/util/types"
 import {CoordinateUnits, AngleUnits, Direction, Anchor, Align, HAlign, VAlign} from "core/enums"
 import {Size} from "core/layout"
@@ -14,6 +14,7 @@ import {Pannable, PanEvent, KeyModifiers} from "core/ui_events"
 import {Signal} from "core/signaling"
 import {SXY} from "../shapes/common"
 import {AffineTransform} from "core/util/affine"
+import {Node} from "../coordinates/node"
 
 type HitTarget = "area"
 
@@ -217,6 +218,45 @@ export class LabelView extends TextAnnotationView implements Pannable {
 
     this._text_box = text_box
     this._rect = {sx, sy, width, height, angle, anchor, padding}
+  }
+
+  override compute_node(node: Node): {sx: number, sy: number} | null {
+    if (node.target != this.model)
+      return null
+
+    const {sx, sy, anchor, width, height, angle} = this._rect
+
+    const dx = anchor.x*width
+    const dy = anchor.y*height
+
+    const bbox = new BBox({x: sx - dx, y: sy - dy, width, height})
+
+    const tr = new AffineTransform()
+    tr.translate(sx, sy)
+    tr.rotate(angle)
+    tr.translate(-sx, -sy)
+
+    const pt = (() => {
+      switch (node.term) {
+        case "top_left": return bbox.top_left
+        case "top_center": return bbox.top_center
+        case "top_right": return bbox.top_right
+        case "center_left": return bbox.center_left
+        case "center": return bbox.center
+        case "center_right": return bbox.center_right
+        case "bottom_left": return bbox.bottom_left
+        case "bottom_center": return bbox.bottom_center
+        case "bottom_right": return bbox.bottom_right
+        default:
+          return null
+      }
+    })()
+
+    if (pt == null)
+      return null
+
+    const {x, y} = tr.apply_point(pt)
+    return {sx: x, sy: y}
   }
 
   protected _render(): void {

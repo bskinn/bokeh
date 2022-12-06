@@ -55,6 +55,7 @@ from ...core.property_mixins import (
     ScalarTextProps,
     TextProps,
 )
+from .._nodes import BoxNodes, NodesDef
 from .annotation import Annotation, DataAnnotation
 
 #-----------------------------------------------------------------------------
@@ -191,6 +192,8 @@ class Label(TextAnnotation):
     .. note::
         This property is experimental and may change at any point.
     """)
+
+    nodes = NodesDef(BoxNodes)
 
 class LabelSet(DataAnnotation):
     ''' Render multiple text labels as annotations.

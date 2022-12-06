@@ -48,7 +48,7 @@ from ...core.property_mixins import (
     ScalarHatchProps,
     ScalarLineProps,
 )
-from .._nodes import NodeDef, Nodes, NodesDef
+from .._nodes import BoxNodes, NodesDef
 from .annotation import Annotation, DataAnnotation
 from .arrows import ArrowHead, TeeHead
 
@@ -75,18 +75,6 @@ BorderRadius = Struct(
 #-----------------------------------------------------------------------------
 # General API
 #-----------------------------------------------------------------------------
-
-class BoxNodes(Nodes):
-
-    top_left = NodeDef()
-    top_center = NodeDef()
-    top_right = NodeDef()
-    center_left = NodeDef()
-    center = NodeDef()
-    center_right = NodeDef()
-    bottom_left = NodeDef()
-    bottom_center = NodeDef()
-    bottom_right = NodeDef()
 
 class BoxAnnotation(Annotation):
     ''' Render a shaded rectangular region as an annotation.

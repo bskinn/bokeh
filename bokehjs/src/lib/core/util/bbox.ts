@@ -41,6 +41,8 @@ export function union(a: Rect, b: Rect): Rect {
   }
 }
 
+export type XY<T = number> = {x: T, y: T}
+
 export type LRTB<T = number> = {
   left: T
   right: T
@@ -200,13 +202,22 @@ export class BBox implements Rect, Equatable {
 
   get size(): Size { return {width: this.width, height: this.height} }
 
+  get top_left(): XY { return {x: this.left, y: this.top} }
+  get top_center(): XY { return {x: this.hcenter, y: this.top} }
+  get top_right(): XY { return {x: this.right, y: this.top} }
+  get center_left(): XY { return {x: this.left, y: this.vcenter} }
+  get center(): XY { return {x: this.hcenter, y: this.vcenter} }
+  get center_right(): XY { return {x: this.right, y: this.vcenter} }
+  get bottom_left(): XY { return {x: this.left, y: this.bottom} }
+  get bottom_center(): XY { return {x: this.hcenter, y: this.bottom} }
+  get bottom_right(): XY { return {x: this.right, y: this.bottom} }
+
   get rect(): GraphicsRect {
-    const {x0, y0, x1, y1} = this
     return {
-      p0: {x: x0, y: y0},
-      p1: {x: x1, y: y0},
-      p2: {x: x1, y: y1},
-      p3: {x: x0, y: y1},
+      p0: this.top_left,
+      p1: this.top_right,
+      p2: this.bottom_right,
+      p3: this.bottom_left,
     }
   }
 
