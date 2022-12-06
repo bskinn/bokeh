@@ -1,6 +1,7 @@
 import {Annotation, AnnotationView} from "./annotation"
 import {Scale} from "../scales/scale"
 import {AutoRanged, auto_ranged} from "../ranges/data_range1d"
+import {Node} from "../coordinates/node"
 import * as mixins from "core/property_mixins"
 import * as visuals from "core/visuals"
 import {SerializableState} from "core/view"
@@ -119,7 +120,7 @@ export class BoxAnnotationView extends AnnotationView implements Pannable, Pinch
     return lrtb
   }
 
-  protected _render(): void {
+  override update_geometry(): void {
     function compute(value: number | null, mapper: CoordinateMapper, frame_extrema: number): number {
       return value == null ? frame_extrema : mapper.compute(value)
     }
@@ -134,7 +135,9 @@ export class BoxAnnotationView extends AnnotationView implements Pannable, Pinch
       top:    compute(top,    mappers.top,    frame.bbox.top),
       bottom: compute(bottom, mappers.bottom, frame.bbox.bottom),
     })
+  }
 
+  protected _render(): void {
     this._paint_box()
   }
 
@@ -556,6 +559,26 @@ export class BoxAnnotationView extends AnnotationView implements Pannable, Pinch
           case "none": return null
         }
       }
+    }
+  }
+
+  override compute_node(node: Node): {sx: number, sy: number} | null {
+    if (node.target != this.model)
+      return null
+
+    const {left, right, hcenter, vcenter, top, bottom} = this.bbox
+    switch (node.term) {
+      case "top_left": return {sx: left, sy: top}
+      case "top_center": return {sx: hcenter, sy: top}
+      case "top_right": return {sx: right, sy: top}
+      case "center_left": return {sx: left, sy: vcenter}
+      case "center": return {sx: hcenter, sy: vcenter}
+      case "center_right": return {sx: right, sy: vcenter}
+      case "bottom_left": return {sx: left, sy: bottom}
+      case "bottom_center": return {sx: hcenter, sy: bottom}
+      case "bottom_right": return {sx: right, sy: bottom}
+      default:
+        return null
     }
   }
 }

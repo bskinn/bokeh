@@ -1,5 +1,6 @@
 import {Path, PathView} from "./path"
 import {Coordinate} from "../coordinates/coordinate"
+import {Node} from "../coordinates/node"
 import {AngleUnits, Direction} from "core/enums"
 import {resolve_angle} from "core/util/math"
 import * as p from "core/properties"
@@ -8,6 +9,16 @@ import {SXY} from "./common"
 export class ArcView extends PathView {
   override model: Arc
   override visuals: Arc.Visuals
+
+  override *referenced_nodes() {
+    yield* super.referenced_nodes()
+    const {center} = this.model
+    if (center instanceof Node)
+      yield center
+  }
+
+  override update_geometry(): void {
+  }
 
   get anticlock(): boolean {
     return this.model.direction == "anticlock"

@@ -1,5 +1,6 @@
 import {Path, PathView} from "./path"
 import {Coordinate} from "../coordinates/coordinate"
+import {Node} from "../coordinates/node"
 import * as p from "core/properties"
 import {SXY} from "./common"
 
@@ -7,12 +8,35 @@ export class LineView extends PathView {
   override model: Line
   override visuals: Line.Visuals
 
+  override *referenced_nodes() {
+    yield* super.referenced_nodes()
+
+    const {p0, p1} = this.model
+    if (p0 instanceof Node)
+      yield p0
+    if (p1 instanceof Node)
+      yield p1
+  }
+
+  protected _p0: SXY
+  protected _p1: SXY
+
+  override update_geometry(): void {
+    super.update_geometry()
+
+    const {p0, p1} = this.model
+    if (p0 instanceof Node)
+      this._p0 = this.parent.resolve_node(p0)
+    if (p1 instanceof Node)
+      this._p1 = this.parent.resolve_node(p1)
+  }
+
   get p0(): SXY {
-    return {sx: 0, sy: 0}
+    return this._p0
   }
 
   get p1(): SXY {
-    return {sx: 0, sy: 0}
+    return this._p1
   }
 
   paint(): void {

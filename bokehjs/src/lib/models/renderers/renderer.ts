@@ -7,6 +7,7 @@ import {CanvasLayer} from "core/util/canvas"
 import type {Plot, PlotView} from "../plots/plot"
 import type {CanvasView} from "../canvas/canvas"
 import {CoordinateTransform, CoordinateMapping} from "../coordinates/coordinate_mapping"
+import {Node} from "../coordinates/node"
 
 export namespace RendererGroup {
   export type Attrs = p.AttrsOf<Props>
@@ -152,6 +153,14 @@ export abstract class RendererView extends View implements visuals.Renderable {
   renderer_view<T extends Renderer>(_renderer: T): T["__view_type__"] | undefined {
     return undefined
   }
+
+  *referenced_nodes(): Iterable<Node> {}
+
+  compute_node(_node: Node): {sx: number, sy: number} | null {
+    return null
+  }
+
+  update_geometry(): void {}
 }
 
 export namespace Renderer {

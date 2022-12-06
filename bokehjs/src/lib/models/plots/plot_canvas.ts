@@ -36,6 +36,9 @@ import {RangeInfo, RangeOptions, RangeManager} from "./range_manager"
 import {StateInfo, StateManager} from "./state_manager"
 import {settings} from "core/settings"
 import {StyleSheet, StyleSheetLike, px} from "core/dom"
+import {toposort, Graph} from "core/util/graph"
+import {Node} from "models/coordinates/node"
+import {Model} from "../../model"
 
 import plots_css from "styles/plots.css"
 
@@ -813,6 +816,48 @@ export class PlotView extends LayoutDOMView implements Renderable {
     }
   }
 
+  protected _computed_nodes: Map<Node, {sx: number, sy: number}> = new Map()
+
+  resolve_node(node: Node): {sx: number, sy: number} {
+    const sxy = this._computed_nodes.get(node)
+    if (sxy != null)
+      return sxy
+
+    if (!(node.target instanceof Renderer))
+      throw new Error(`unsupported node target: ${node.target}`)
+
+    const view = this.renderer_view(node.target)
+    if (view == null)
+      throw new Error(`unreachable renderer: ${node.target}`)
+
+    const computed = view.compute_node(node)
+    if (computed == null)
+      throw new Error(`node ${node.term} unsupported by ${node.target}`)
+
+    this._computed_nodes.set(node, computed)
+    return computed
+  }
+
+  protected _recompute_nodes(): void {
+    this._computed_nodes.clear()
+
+    const graph: Graph<Model> = new Map()
+    for (const renderer of this.get_renderer_views()) {
+      const dependencies = [...renderer.referenced_nodes()].map((node) => node.target)
+      graph.set(renderer.model, dependencies)
+    }
+
+    const renderers = toposort(graph)
+
+    for (const renderer of renderers) {
+      if (!(renderer instanceof Renderer))
+        continue
+
+      const view = this.renderer_view(renderer)!
+      view.update_geometry()
+    }
+  }
+
   protected _actual_paint(): void {
     const {document} = this.model
     if (document != null) {
@@ -832,6 +877,8 @@ export class PlotView extends LayoutDOMView implements Renderable {
       this._range_manager.update_dataranges()
       this._invalidate_layout_if_needed()
     }
+
+    this._recompute_nodes()
 
     let do_primary = false
     let do_overlays = false
@@ -893,23 +940,21 @@ export class PlotView extends LayoutDOMView implements Renderable {
   }
 
   protected _paint_levels(ctx: Context2d, level: RenderLevel, clip_region: FrameBox, global_clip: boolean): void {
-    for (const renderer of this.computed_renderers) {
-      if (renderer.level != level)
+    for (const renderer of this.get_renderer_views()) {
+      if (renderer.model.level != level)
         continue
 
-      const renderer_view = this.renderer_views.get(renderer)!
-
       ctx.save()
-      if (global_clip || renderer_view.needs_clip) {
+      if (global_clip || renderer.needs_clip) {
         ctx.beginPath()
         ctx.rect(...clip_region)
         ctx.clip()
       }
 
-      renderer_view.render()
+      renderer.render()
       ctx.restore()
 
-      if (renderer_view.has_webgl && renderer_view.needs_webgl_blit) {
+      if (renderer.has_webgl && renderer.needs_webgl_blit) {
         this.canvas_view.blit_webgl(ctx)
       }
     }
