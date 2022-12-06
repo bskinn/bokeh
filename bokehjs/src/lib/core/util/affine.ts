@@ -102,7 +102,7 @@ export class AffineTransform {
     return this.transform(c, s, -s, c, 0, 0)
   }
 
-  rotate_ccw(angle: number): this {
+  rotate_cw(angle: number): this {
     return this.rotate(-angle)
   }
 

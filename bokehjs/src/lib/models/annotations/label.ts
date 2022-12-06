@@ -1,18 +1,23 @@
 import {TextAnnotation, TextAnnotationView} from "./text_annotation"
-import {resolve_angle} from "core/util/math"
+import {compute_angle, invert_angle, atan2} from "core/util/math"
 import {CoordinateMapper} from "core/util/bbox"
 import {isString, isNumber, isPlainObject} from "core/util/types"
-import {CoordinateUnits, AngleUnits, Anchor, Align, HAlign, VAlign} from "core/enums"
+import {CoordinateUnits, AngleUnits, Direction, Anchor, Align, HAlign, VAlign} from "core/enums"
 import {Size} from "core/layout"
 import {SideLayout} from "core/layout/side_panel"
 import {Or, Tuple, Float, PartialStruct} from "core/kinds"
 import * as p from "core/properties"
-import {Context2d} from "core/util/canvas"
-import {Position} from "core/graphics"
+import {GraphicsBox} from "core/graphics"
 import {LRTB} from "core/util/bbox"
-import {unreachable} from "core/util/assert"
+import {unreachable, assert} from "core/util/assert"
+import {Pannable, PanEvent, KeyModifiers} from "core/ui_events"
+import {Signal} from "core/signaling"
+import {SXY} from "../shapes/common"
+import {AffineTransform} from "core/util/affine"
 
-export type XY<T> = {x: T, y: T}
+type HitTarget = "area"
+
+export type XY<T = number> = {x: T, y: T}
 
 export type AnchorLike = typeof AnchorLike["__type__"]
 export const AnchorLike = Or(Anchor, Tuple(Or(Align, HAlign, Float), Or(Align, VAlign, Float)))
@@ -23,7 +28,7 @@ const TRBL_Padding = Or(Tuple(Float, Float, Float, Float), PartialStruct({top: F
 export const Padding = Or(Float, VH_Padding, TRBL_Padding)
 export type Padding = typeof Padding["__type__"]
 
-export class LabelView extends TextAnnotationView {
+export class LabelView extends TextAnnotationView implements Pannable {
   override model: Label
   override visuals: Label.Visuals
 
@@ -170,32 +175,54 @@ export class LabelView extends TextAnnotationView {
   }
 
   get angle(): number {
-    const {angle, angle_units} = this.model
-    return resolve_angle(angle, angle_units)
+    const {angle, angle_units, direction} = this.model
+    return compute_angle(angle, angle_units, direction)
   }
 
-  protected _render(): void {
+  get origin(): SXY {
     const {mappers} = this
     const {x, y, x_offset, y_offset} = this.model
 
     const sx = mappers.x.compute(x) + x_offset
     const sy = mappers.y.compute(y) - y_offset
 
-    this._paint(this.layer.ctx, {sx, sy}, this.angle)
+    return {sx, sy}
   }
 
-  protected override _paint(ctx: Context2d, position: Position, angle: number): void {
-    const graphics = this._text_view.graphics()
-    graphics.position = {sx: 0, sy: 0, x_anchor: "left", y_anchor: "top"}
-    graphics.align = "auto"
-    graphics.visuals = this.visuals.text.values()
+  protected _text_box: GraphicsBox
+  protected _rect: {
+    sx: number
+    sy: number
+    width: number
+    height: number
+    angle: number
+    anchor: XY<number>
+    padding: LRTB<number>
+  }
 
-    const size = graphics.size()
-    const {sx, sy} = position
-    const {anchor, padding} = this
+  override update_geometry(): void {
+    super.update_geometry()
+
+    const text_box = this._text_view.graphics()
+    text_box.position = {sx: 0, sy: 0, x_anchor: "left", y_anchor: "top"}
+    text_box.align = "auto"
+    text_box.visuals = this.visuals.text.values()
+
+    const size = text_box.size()
+    const {sx, sy} = this.origin
+    const {anchor, padding, angle} = this
 
     const width = size.width + padding.left + padding.right
     const height = size.height + padding.top + padding.bottom
+
+    this._text_box = text_box
+    this._rect = {sx, sy, width, height, angle, anchor, padding}
+  }
+
+  protected _render(): void {
+    const {ctx} = this.layer
+
+    const {sx, sy, width, height, angle, anchor, padding} = this._rect
 
     const dx = anchor.x*width
     const dy = anchor.y*height
@@ -216,10 +243,94 @@ export class LabelView extends TextAnnotationView {
 
     if (this.visuals.text.doit) {
       ctx.translate(padding.left, padding.top)
-      graphics.paint(ctx)
+      this._text_box.paint(ctx)
     }
 
     ctx.restore()
+  }
+
+  override interactive_hit(sx: number, sy: number): boolean {
+    if (!this.model.visible || !this.model.editable)
+      return false
+    return this._hit_test(sx, sy) == "area"
+  }
+
+  protected _hit_test(cx: number, cy: number): HitTarget | null {
+    const {sx, sy, anchor, angle, width, height} = this._rect
+
+    const tr = new AffineTransform()
+    tr.translate(sx, sy)
+    tr.rotate_cw(angle)
+    tr.translate(-sx, -sy)
+    const pt = tr.apply_point({x: cx, y: cy})
+
+    const left = sx - anchor.x*width
+    const top = sy - anchor.y*height
+    const right = left + width
+    const bottom = top + height
+
+    if (left <= pt.x && pt.x <= right && top <= pt.y && pt.y <= bottom)
+      return "area"
+    else
+      return null
+  }
+
+  private _can_hit(_target: HitTarget): boolean {
+    return true
+  }
+
+  private _pan_state: {angle: number, base: SXY, target: HitTarget, action: "rotate"} | null = null
+
+  _pan_start(ev: PanEvent): boolean {
+    if (this.model.visible && this.model.editable) {
+      const {sx, sy} = ev
+      const target = this._hit_test(sx, sy)
+      if (target != null && this._can_hit(target)) {
+        this._pan_state = {
+          angle: this.angle,
+          base: {sx, sy},
+          target,
+          action: "rotate",
+        }
+        this.model.pan.emit(["pan:start", ev])
+        return true
+      }
+    }
+    return false
+  }
+
+  _pan(ev: PanEvent): void {
+    assert(this._pan_state != null)
+
+    const {dx, dy} = ev
+    const {angle, base} = this._pan_state
+    const {origin} = this
+
+    const angle0 = atan2([origin.sx, origin.sy], [base.sx, base.sy])
+    const angle1 = atan2([origin.sx, origin.sy], [base.sx + dx, base.sy + dy])
+
+    const da = angle1 - angle0
+    const na = angle + da
+
+    const nna = na % (2*Math.PI)
+
+    const {angle_units, direction} = this.model
+    this.model.angle = invert_angle(nna, angle_units, direction)
+
+    this.model.pan.emit(["pan", ev])
+  }
+
+  _pan_end(ev: PanEvent): void {
+    this._pan_state = null
+    this.model.pan.emit(["pan:end", ev])
+  }
+
+  override cursor(sx: number, sy: number): string | null {
+    const target = this._pan_state?.target ?? this._hit_test(sx, sy)
+    if (target == null || !this._can_hit(target)) {
+      return null
+    }
+    return "var(--bokeh-cursor-rotate)"
   }
 }
 
@@ -234,7 +345,9 @@ export namespace Label {
     y_offset: p.Property<number>
     angle: p.Property<number>
     angle_units: p.Property<AngleUnits>
+    direction: p.Property<Direction>
     padding: p.Property<Padding>
+    editable: p.Property<boolean>
   }
 
   export type Attrs = p.AttrsOf<Props>
@@ -255,7 +368,7 @@ export class Label extends TextAnnotation {
   static {
     this.prototype.default_view = LabelView
 
-    this.define<Label.Props>(({Number, Angle, Auto, Or}) => ({
+    this.define<Label.Props>(({Boolean, Number, Angle, Auto, Or}) => ({
       anchor:      [ Or(Auto, AnchorLike), "auto" ],
       x:           [ Number ],
       y:           [ Number ],
@@ -265,7 +378,11 @@ export class Label extends TextAnnotation {
       y_offset:    [ Number, 0 ],
       angle:       [ Angle, 0 ],
       angle_units: [ AngleUnits, "rad" ],
+      direction:   [ Direction, "anticlock" ],
       padding:     [ Padding, 0 ],
+      editable:    [ Boolean, false ],
     }))
   }
+
+  readonly pan = new Signal<["pan:start" | "pan" | "pan:end", KeyModifiers], this>(this, "pan")
 }
